@@ -1,0 +1,130 @@
+<?php
+
+// инструкции партнера (методом POST) отправка данных
+$params1 = array(
+      "pid" => "qwe123",
+      "offerId" => 315,
+      "firstname" => "John1",
+      "lastname" => "Smith1",
+      "email" => "jsmith@example.com",
+      "phone" => "+380123456789",
+      "ref" => "https://ref.com/",
+      "ip" => "1.1.1.2",
+      "country" => "BG",
+      "city" => "Kiev",
+      "sub1" => "string",
+      "sub2" => "string",
+      "sub3" => "string",
+      "sub4" => "string",
+      "sub5" => "string",
+      "sub6" => "string",
+      "sub7" => "string",
+      "sub8" => "string"
+    );
+
+
+/*
+Ссылка для POST запроса:
+Данные параметры необходимо отправить строго с этими значениями
+
+Параметры для тела запроса:
+* помечены поля в документации обязательные для заполнения.
+
+*/
+$params2 = array(
+    'pid' => "yicllz",
+    'offerId' => 62 ,
+    'city' => ""
+    );
+
+// функция отправки POST запроса
+function apiQuery($url, $params = array()) {
+	
+		// устанавливаем начальное значение переменным
+		$result = "";
+		static $ch = null;
+
+		// присваеваем данные переменным
+		$url = trim($url);
+		$body = json_encode($params, true); 
+		
+		// форимруем заголовок HTTP(S)
+		$headers = array(
+                'Content-Type: application/json',
+				'User-Agent: PHP-SDK/1.0.1',
+        );	  			   	   
+		
+		// инициализируем curl 
+		$ch = curl_init($url);
+	
+		// устанавливаем параметры соединения с сервером
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+		curl_setopt($ch, CURLOPT_VERBOSE, true); 
+		
+		// устанавливаем время соединния с сервером
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,100); 
+		curl_setopt($ch, CURLOPT_TIMEOUT, 100); 
+
+        // передаём данные в curl
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);		
+		
+		    // получаем ответ от сервера
+			$info_curl = curl_exec($ch); 
+			
+			// декодирум json
+			$result = json_decode($info_curl, true);		     
+	
+	// возвращаем результат
+    return $result;
+}
+
+//------------------------------------------------ запускаем нашу функцию
+
+// Указываем URL сервера
+$url = "https://admin.neogara.com/api/lid";
+
+// Вызываем функцию и передаём все эти данные (вариант 1)
+$respone = apiQuery($url, $params1);
+
+// Вызываем функцию и передаём все эти данные (вариант 2) 
+//$respone = apiQuery($url, $params2);
+
+// оператор отладки кода
+//var_dump($respone);
+
+// если всё хорошо
+if($respone['result'] == "ok")
+{
+    
+}
+
+// если присутствуют ошибки (на пустые поля)
+if($respone['statusCode'] == 400)
+{
+    // пересчитываем ответные сообщения
+    for($i = 0; $i < count($respone['message']); $i++)
+    {
+        // если сообщение одно то
+        if(!is_array($respone['message'])){
+            // выводим сообщение
+            echo '<br>'.$respone['message'];
+        }else{
+            // выводим сообщения
+            echo '<br>'.$respone['message'][$i];   
+        }       
+        
+    }
+    
+    // выводим ошибку
+    echo '<br><b>'.$respone['error'].'</b>';
+}
+
+// если неизвестная ошибка (Unauthorized)
+if($respone['statusCode'] == 401)
+{
+    echo '<br> > '.$respone['message'];
+}
+
+?>
